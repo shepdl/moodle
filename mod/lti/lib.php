@@ -682,3 +682,4 @@ function mod_lti_core_calendar_provide_event_action(calendar_event $event,
         true
     );
 }
+

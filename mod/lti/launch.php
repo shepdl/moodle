@@ -52,6 +52,9 @@ require_once($CFG->dirroot.'/mod/lti/locallib.php');
 
 $id = required_param('id', PARAM_INT); // Course Module ID.
 $triggerview = optional_param('triggerview', 1, PARAM_BOOL);
+// START UCLA MOD: CCLE-6956 - LTI Apps in Rich Text Editor.
+$placement = optional_param('placement', 'activity', PARAM_RAW);
+// END UCLA MOD: CCLE-6956.
 
 $cm = get_coursemodule_from_id('lti', $id, 0, false, MUST_EXIST);
 $lti = $DB->get_record('lti', array('id' => $cm->instance), '*', MUST_EXIST);
@@ -62,11 +65,22 @@ $context = context_module::instance($cm->id);
 require_login($course, true, $cm);
 require_capability('mod/lti:view', $context);
 
+// START UCLA MOD: CCLE-4863 - Sign FERPA waiver for external LTI
+// If true, then user needs to sign waiver.
+$url = new moodle_url('/mod/lti/launch.php', array('id' => $id));
+if (local_ucla_ferpa_waiver::check($context, $USER->id)) {
+    $redirecturl = mod_casa_privacy_waiver::get_link($context, $url);
+    redirect($redirecturl);
+}
+// END UCLA MOD: CCLE-4863
+
 // Completion and trigger events.
 if ($triggerview) {
     lti_view($lti, $course, $cm, $context);
 }
 
 $lti->cmid = $cm->id;
-lti_launch_tool($lti);
-
+// START UCLA MOD: CCLE-6956 - LTI Apps in Rich Text Editor.
+//lti_launch_tool($lti);
+lti_launch_tool($lti, $placement);
+// END UCLA MOD: CCLE-6956.
