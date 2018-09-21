@@ -27,6 +27,10 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+global $CFG; // should be defined in config.php
+
+require_once($CFG->dirroot.'/mod/lti/locallib.php');
+
 // require_once  './mod/lti/locallib.php';
 
 function atto_lti_strings_for_js () {
