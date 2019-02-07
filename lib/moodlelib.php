@@ -3108,7 +3108,10 @@ function require_course_login($courseorid, $autologinguest = true, $cm = null, $
             // If $PAGE->course, and hence $PAGE->context, have not already been set up properly, set them up now.
             $PAGE->set_course($PAGE->course);
         }
-        user_accesstime_log(SITEID);
+        // Do not update access time for webservice or ajax requests.
+        if (!WS_SERVER && !AJAX_SCRIPT) {
+            user_accesstime_log(SITEID);
+        }
         return;
 
     } else {
@@ -4952,6 +4955,9 @@ function delete_course($courseorid, $showfeedback = true) {
             }
         }
     }
+
+    $handler = core_course\customfield\course_handler::create();
+    $handler->delete_instance($courseid);
 
     // Make the course completely empty.
     remove_course_contents($courseid, $showfeedback);
@@ -8950,10 +8956,15 @@ function mtrace($string, $eol="\n", $sleep=0) {
         return;
     } else if (defined('STDOUT') && !PHPUNIT_TEST && !defined('BEHAT_TEST')) {
         fwrite(STDOUT, $string.$eol);
+
+        // We must explicitly call the add_line function here.
+        // Uses of fwrite to STDOUT are not picked up by ob_start.
+        \core\task\logmanager::add_line("{$string}{$eol}");
     } else {
         echo $string . $eol;
     }
 
+    // Flush again.
     flush();
 
     // Delay to keep message on user's screen in case of subsequent redirect.

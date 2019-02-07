@@ -323,15 +323,11 @@ class api {
               ORDER BY " . $DB->sql_fullname();
         $foundusers = $DB->get_records_sql_menu($sql, $params + $excludeparams, $limitfrom, $limitnum);
 
-        $orderedcontacts = array();
+        $contacts = [];
         if (!empty($foundusers)) {
             $contacts = helper::get_member_info($userid, array_keys($foundusers));
-            // The get_member_info returns an associative array, so is not ordered in the same way.
-            // We need to reorder it again based on query's result.
-            foreach ($foundusers as $key => $value) {
-                $contact = $contacts[$key];
-                $contact->conversations = self::get_conversations_between_users($userid, $key, 0, 1000);
-                $orderedcontacts[] = $contact;
+            foreach ($contacts as $memberuserid => $memberinfo) {
+                $contacts[$memberuserid]->conversations = self::get_conversations_between_users($userid, $memberuserid, 0, 1000);
             }
         }
 
@@ -417,19 +413,15 @@ class api {
             $foundusers = $returnedusers;
         }
 
-        $orderednoncontacts = array();
+        $noncontacts = [];
         if (!empty($foundusers)) {
             $noncontacts = helper::get_member_info($userid, array_keys($foundusers));
-            // The get_member_info returns an associative array, so is not ordered in the same way.
-            // We need to reorder it again based on query's result.
-            foreach ($foundusers as $key => $value) {
-                $contact = $noncontacts[$key];
-                $contact->conversations = self::get_conversations_between_users($userid, $key, 0, 1000);
-                $orderednoncontacts[] = $contact;
+            foreach ($noncontacts as $memberuserid => $memberinfo) {
+                $noncontacts[$memberuserid]->conversations = self::get_conversations_between_users($userid, $memberuserid, 0, 1000);
             }
         }
 
-        return array($orderedcontacts, $orderednoncontacts);
+        return array(array_values($contacts), array_values($noncontacts));
     }
 
     /**
@@ -444,7 +436,9 @@ class api {
      * @throws \dml_exception
      */
     protected static function get_linked_conversation_extra_fields(array $conversations) : array {
-        global $DB;
+        global $DB, $PAGE;
+
+        $renderer = $PAGE->get_renderer('core');
 
         $linkedconversations = [];
         foreach ($conversations as $conversation) {
@@ -476,7 +470,7 @@ class api {
                     $extrafields[$convid]['subname'] = format_string($courseinfo[$groupid]->courseshortname);
 
                     // Imageurl.
-                    $extrafields[$convid]['imageurl'] = '';
+                    $extrafields[$convid]['imageurl'] = $renderer->image_url('g/g1')->out(false); // default image.
                     if ($url = get_group_picture_url($group, $group->courseid, true)) {
                         $extrafields[$convid]['imageurl'] = $url->out(false);
                     }
@@ -553,7 +547,7 @@ class api {
 
         $sql = "SELECT m.id as messageid, mc.id as id, mc.name as conversationname, mc.type as conversationtype, m.useridfrom,
                        m.smallmessage, m.fullmessage, m.fullmessageformat, m.fullmessagehtml, m.timecreated, mc.component,
-                       mc.itemtype, mc.itemid
+                       mc.itemtype, mc.itemid, mc.contextid
                   FROM {message_conversations} mc
             INNER JOIN {message_conversation_members} mcm
                     ON (mcm.conversationid = mc.id AND mcm.userid = :userid3)
@@ -748,6 +742,10 @@ class api {
         $unreadcounts = $DB->get_records_sql($unreadcountssql, [$userid, self::MESSAGE_ACTION_READ, self::MESSAGE_ACTION_DELETED,
             $userid, $userid]);
 
+        // Because we'll be calling format_string on each conversation name and passing contexts, we preload them here.
+        // This warms the cache and saves potentially hitting the DB once for each context fetch below.
+        \context_helper::preload_contexts_by_id(array_column($conversations, 'contextid'));
+
         // Now, create the final return structure.
         $arrconversations = [];
         foreach ($conversations as $conversation) {
@@ -766,7 +764,16 @@ class api {
 
             $conv = new \stdClass();
             $conv->id = $conversation->id;
-            $conv->name = $conversation->conversationname;
+
+            // Name should be formatted and depends on the context the conversation resides in.
+            // If not set, the context is always context_user.
+            if (is_null($conversation->contextid)) {
+                $convcontext = \context_user::instance($userid);
+            } else {
+                $convcontext = \context::instance_by_id($conversation->contextid);
+            }
+            $conv->name = format_string($conversation->conversationname, true, ['context' => $convcontext]);
+
             $conv->subname = $convextrafields[$conv->id]['subname'] ?? null;
             $conv->imageurl = $convextrafields[$conv->id]['imageurl'] ?? null;
             $conv->type = $conversation->conversationtype;
