@@ -139,9 +139,54 @@ function xmldb_lti_upgrade($oldversion) {
 
     // Automatically generated Moodle v3.5.0 release upgrade line.
     // Put any upgrade step following this.
+    if ($oldversion < 2017111302) {
+        $table = new xmldb_table('lti_types');
 
-    // Automatically generated Moodle v3.6.0 release upgrade line.
-    // Put any upgrade step following this.
+        $fields = [];
+        $fields[] = new xmldb_field('asactivity', XMLDB_TYPE_INTEGER, 1, null, null, null, 1, 'secureicon');
+        $fields[] = new xmldb_field('asassignment', XMLDB_TYPE_INTEGER, 1, null, null, null, 0, 'asactivity');
+        $fields[] = new xmldb_field('assignmenturl', XMLDB_TYPE_TEXT, 255, null, false, null, null, 'asassignment');
+        $fields[] = new xmldb_field('asmenulink', XMLDB_TYPE_INTEGER, 1, null, null, null, 0, 'assignmenturl');
+        $fields[] = new xmldb_field('menulinkurl', XMLDB_TYPE_TEXT, 255, null, false, null, null, 'asmenulink');
+        $fields[] = new xmldb_field('asrichtexteditorplugin', XMLDB_TYPE_INTEGER, 1, null, null, null, 0, 'menulinkurl');
+        $fields[] = new xmldb_field('richtexteditorurl', XMLDB_TYPE_TEXT, 255, null, false, null, null, 'asrichtexteditorplugin');
+        foreach ($fields as $field) {
+            if (!$dbman->field_exists($table, $field)) {
+                $dbman->add_field($table, $field);
+            }
+        }
+
+        upgrade_mod_savepoint(true, 2017111302, 'lti');
+    }
+
+    if ($oldversion < 2018121300) {
+        $table = new xmldb_table('lti_course_menu_placements');
+        if (!$dbman->table_exists($table)) {
+            $table->add_field('id', XMLDB_TYPE_INTEGER, 11, XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+            $table->add_field('typeid', XMLDB_TYPE_INTEGER, 11, XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, 'id');
+            $table->add_field('courseid', XMLDB_TYPE_INTEGER, 11, XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, 'typeid');
+            $table->add_key('primary', XMLDB_KEY_PRIMARY, array ('id'));
+            $dbman->create_table($table);
+            $dbman->add_index($table, new xmldb_index('typeid', XMLDB_INDEX_NOTUNIQUE, array('typeid')));
+            $dbman->add_index($table, new xmldb_index('courseid', XMLDB_INDEX_NOTUNIQUE, array('courseid')));
+        } else {
+            $fields = [];
+
+            $fields[] = new xmldb_field('typeid', XMLDB_TYPE_INTEGER, 1, null, null, null, 'id');
+            $fields[] = new xmldb_field('courseid', XMLDB_TYPE_INTEGER, 1, null, null, null, 'typeid');
+            
+            foreach ($fields as $field) {
+                if (!$dbman->field_exists($table, $field)) {
+                    $dbman->add_field($table, $field);
+                    $index = new xmldb_index($field->getName(), XMLDB_INDEX_NOTUNIQUE, array($field->getName()));
+                    $dbman->add_index($table, $index);
+                }
+            }
+        }
+
+        upgrade_mod_savepoint(true, 2018121300, 'lti');
+    }
+    
 
     return true;
 

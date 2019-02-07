@@ -107,6 +107,8 @@ $string['confirmtoolactivation'] = 'Are you sure you would like to activate this
 $string['contentitem'] = 'Content-Item Message';
 $string['contentitem_help'] = 'If ticked, the option \'Select content\' will be available when adding an external tool.';
 $string['course_tool_types'] = 'Course tools';
+$string['courseapps'] = 'Course Apps';
+$string['courseappselectionmessage'] = 'Choose apps to show in the side menu';
 $string['courseactivitiesorresources'] = 'Course activities or resources';
 $string['courseid'] = 'Course ID number';
 $string['courseinformation'] = 'Course information';
@@ -349,6 +351,14 @@ along with the consumer key from the tool provider.
 Tools which do not require secure communication from Moodle and do not provide additional services (such as grade reporting)
 may not require a shared secret.';
 $string['pending'] = 'Pending';
+$string['placements'] = 'Placements';
+$string['placementactivityurl'] = 'Activity URL';
+$string['placementasassignment'] = 'As Assignment';
+$string['placementasmenulink'] = 'As Menu Link';
+$string['placementasrichtexteditorplugin'] = 'As Rich Text Editor Plugin';
+$string['placementassignmenturl'] = 'Assignment URL';
+$string['placementmenulinkurl'] = 'Menu Link URL';
+$string['placementrichtexteditorurl'] = 'Rich Text Editor URL';
 $string['pluginadministration'] = 'External tool administration';
 $string['pluginname'] = 'External tool';
 $string['preferheight'] = 'Preferred height';
@@ -431,6 +441,7 @@ $string['secure_launch_url_help'] = 'Similar to the tool URL, but used instead o
 
 The tool URL may also be set to an https address to force launching through SSL, and this field may be left blank.';
 $string['selectcontent'] = 'Select content';
+$string['selectcourseapptitle'] = 'Select Course Apps';
 $string['send'] = 'Send';
 $string['services'] = 'Services';
 $string['services_help'] = 'Select those services which you wish to offer to the tool provider.  More than one service can be selected.';

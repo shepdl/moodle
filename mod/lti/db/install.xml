@@ -40,6 +40,22 @@
         <INDEX NAME="course" UNIQUE="false" FIELDS="course"/>
       </INDEXES>
     </TABLE>
+    <TABLE NAME="lti_course_menu_placements" COMMENT="Course menu placements">
+        <FIELDS>
+          <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+          <FIELD NAME="typeid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Type"/>
+          <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Course placement belongs to"/>
+        </FIELDS>
+       <KEYS>
+         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+         <KEY NAME="type" TYPE="foreign" FIELDS="typeid" REFTABLE="lti_types" REFFIELDS="id" COMMENT="The tool referenced"/>
+         <KEY NAME="course" TYPE="foreign" FIELDS="course" REFTABLE="course" REFFIELDS="id" COMMENT="The course to which the setting relates"/>
+       </KEYS>
+       <INDEXES>
+         <INDEX NAME="type" UNIQUE="false" FIELDS="type"/>
+         <INDEX NAME="course" UNIQUE="false" FIELDS="course"/>
+       </INDEXES>
+    </TABLE>
     <TABLE NAME="lti_tool_proxies" COMMENT="LTI tool proxy registrations">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
@@ -81,6 +97,13 @@
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="description" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="A description of what this LTI module is."/>
+        <FIELD NAME="asactivity" TYPE="int" LENGTH="1" NOTNULL="false" SEQUENCE="false" COMMENT="Can the type be used as an activity?" />
+        <FIELD NAME="asassignment" TYPE="int" LENGTH="1" NOTNULL="false" SEQUENCE="false" COMMENT="Can the type be used as an assignment?" />
+        <FIELD NAME="assignmenturl" TYPE="text" NOTNULL="false" SEQUENCE="false" />
+        <FIELD NAME="asmenulink" TYPE="int" LENGTH="1" NOTNULL="false" SEQUENCE="false" COMMENT="Can the type be used as an menu link?" />
+        <FIELD NAME="menulinkurl" TYPE="text" NOTNULL="false" SEQUENCE="false" />
+        <FIELD NAME="asrichtexteditorplugin" TYPE="int" LENGTH="1" NOTNULL="false" SEQUENCE="false" COMMENT="Can the type be used as a rich text editor plugin?" />
+        <FIELD NAME="richtexteditorurl" TYPE="text" NOTNULL="false" SEQUENCE="false" />
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>

@@ -651,3 +651,74 @@ function mod_lti_core_calendar_provide_event_action(calendar_event $event,
         true
     );
 }
+
+function lti_load_course_menu_links(int $courseid, $activeonly=false) {
+    global $DB;
+    
+    $join = '';
+    if (!$activeonly) {
+        $join = ' LEFT ';
+    }
+    $records = $DB->get_recordset_sql(
+        'SELECT l.id, l.name, lc.courseid FROM '. $DB->get_prefix().'lti_types AS l '
+        . $join. ' JOIN ' . $DB->get_prefix() . 'lti_course_menu_placements AS lc ON lc.typeid = l.id '
+        .' AND lc.courseid = ?'
+        .' WHERE l.asmenulink = 1'
+        .' ORDER BY l.name', [$courseid, ]
+    );
+    
+    $types = [];
+    
+    foreach ($records as $record) {
+        $type = new stdClass();
+        
+        $type->id = $record->id;
+        $type->name = $record->name;
+        $type->selected = $record->courseid != null;
+        $types[] = $type;
+    }
+    
+    return $types;
+}
+
+function lti_extend_navigation_course(navigation_node $parentnode, stdClass $user, context_course $coursecontext) {
+    global $COURSE, $PAGE;
+
+    $coursenode = $PAGE->navigation->find($coursecontext->instanceid, navigation_node::TYPE_COURSE);
+    
+    $appsnode = navigation_node::create(
+        'Course Apps', 
+        new \moodle_url('/mod/lti/menuplacementedit_form.php', array(
+            'course' => $coursecontext->instanceid,
+            'action' => 'set',
+        )), // We have to add a URL to the course node,
+        navigation_node::TYPE_CATEGORY,
+        null,
+        null,
+        null
+    );
+    $appsnode->make_inactive();
+    $appsnode->collapse = false;
+    $appsnode->isexpandable = true;
+    
+    $appsnode = new flat_navigation_node($appsnode, 0);
+    $appsnode->set_showdivider(true);
+    $appsnode = $coursenode->add_node($appsnode);
+
+    foreach (lti_load_course_menu_links($coursecontext->instanceid, true) as $type) {
+        $node = $coursenode->add(
+            $type->name,
+            new moodle_url('/mod/lti/view.php', [
+                'course' => $coursecontext->instanceid,
+                'ltitypeid' => $type->id,
+            ]),
+            navigation_node::TYPE_RESOURCE
+        );
+        $node->set_parent($appsnode);
+    }
+
+    if ($COURSE->id !== SITEID && $COURSE->format !== 'ucla') {
+        return;
+    }
+    
+}
