@@ -60,6 +60,7 @@
  */
 function xmldb_lti_upgrade($oldversion) {
     global $CFG, $DB;
+    $dbman = $DB->get_manager();
 
     // Automatically generated Moodle v3.3.0 release upgrade line.
     // Put any upgrade step following this.
@@ -121,11 +122,11 @@ function xmldb_lti_upgrade($oldversion) {
 
     // Automatically generated Moodle v3.5.0 release upgrade line.
     // Put any upgrade step following this.
-    if ($oldversion < 2017111302) {
+    if ($oldversion < 2019030800) {
         $table = new xmldb_table('lti_types');
 
         $fields = [];
-        $fields[] = new xmldb_field('asactivity', XMLDB_TYPE_INTEGER, 1, null, null, null, 1, 'secureicon');
+        $fields[] = new xmldb_field('asactivity', XMLDB_TYPE_INTEGER, 1, null, null, null, 1, 'description');
         $fields[] = new xmldb_field('asassignment', XMLDB_TYPE_INTEGER, 1, null, null, null, 0, 'asactivity');
         $fields[] = new xmldb_field('assignmenturl', XMLDB_TYPE_TEXT, 255, null, false, null, null, 'asassignment');
         $fields[] = new xmldb_field('asmenulink', XMLDB_TYPE_INTEGER, 1, null, null, null, 0, 'assignmenturl');
@@ -138,10 +139,6 @@ function xmldb_lti_upgrade($oldversion) {
             }
         }
 
-        upgrade_mod_savepoint(true, 2017111302, 'lti');
-    }
-
-    if ($oldversion < 2018121300) {
         $table = new xmldb_table('lti_course_menu_placements');
         if (!$dbman->table_exists($table)) {
             $table->add_field('id', XMLDB_TYPE_INTEGER, 11, XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
@@ -166,7 +163,7 @@ function xmldb_lti_upgrade($oldversion) {
             }
         }
 
-        upgrade_mod_savepoint(true, 2018121300, 'lti');
+        upgrade_mod_savepoint(true, 2019030800, 'lti');
     }
     
 
