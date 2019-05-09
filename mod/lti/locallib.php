@@ -782,6 +782,7 @@ function lti_build_content_item_selection_request($id, $course, moodle_url $retu
     if (empty($mediatypes)) {
         $mediatypes = [
             'application/vnd.ims.lti.v1.ltilink',
+            'text/html'
         ];
     }
     $requestparams['accept_media_types'] = implode(',', $mediatypes);
