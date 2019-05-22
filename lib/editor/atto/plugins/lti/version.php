@@ -26,6 +26,6 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version    = 2018041003;
+$plugin->version    = 2018041045;
 $plugin->requires   = 2017110800;
 $plugin->component  = 'atto_lti';

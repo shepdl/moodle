@@ -27,6 +27,8 @@ require_once(dirname(__FILE__) . '/../../../../../config.php');
 require_once($CFG->dirroot . '/mod/lti/lib.php');
 require_once($CFG->dirroot . '/mod/lti/locallib.php');
 
+global $USER;
+
 $id = required_param('id', PARAM_INT);
 $courseid = required_param('course', PARAM_INT);
 $callback = required_param('callback', PARAM_ALPHANUMEXT);
@@ -35,8 +37,12 @@ $callback = required_param('callback', PARAM_ALPHANUMEXT);
 $course = get_course($courseid);
 require_login($course);
 $context = context_course::instance($courseid);
-require_capability('moodle/course:manageactivities', $context);
-require_capability('mod/lti:addcoursetool', $context);
+
+// Students will access this tool for the student submission workflow. Assume student can submit an assignment?
+if (!is_enrolled($context, $USER, 'mod/assignment:submit')) {
+	require_capability('moodle/course:manageactivities', $context);
+	require_capability('mod/lti:addcoursetool', $context);
+}
 
 // Set the return URL. We send the launch container along to help us avoid
 // frames-within-frames when the user returns.

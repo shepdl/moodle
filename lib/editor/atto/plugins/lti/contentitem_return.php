@@ -25,6 +25,8 @@
 
 require_once(dirname(__FILE__) . '/../../../../../config.php');
 
+global $USER;
+
 $courseid = required_param('course', PARAM_INT);
 $callback = required_param('callback', PARAM_ALPHANUMEXT);
 $contentitemsraw = required_param('content_items', PARAM_RAW_TRIMMED);
@@ -32,8 +34,12 @@ $contentitemsraw = required_param('content_items', PARAM_RAW_TRIMMED);
 require_login($courseid);
 
 $context = context_course::instance($courseid);
-require_capability('moodle/course:manageactivities', $context);
-require_capability('mod/lti:addcoursetool', $context);
+
+// Students will access this tool for the student submission workflow. Assume student can submit an assignment?
+if (!is_enrolled($context, $USER, 'mod/assignment:submit')) {
+	require_capability('moodle/course:manageactivities', $context);
+	require_capability('mod/lti:addcoursetool', $context);
+}
 
 $contentitems = json_decode($contentitemsraw);
 
